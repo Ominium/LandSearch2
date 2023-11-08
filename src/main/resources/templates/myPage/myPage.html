@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>마이 페이지</title>
+    <script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css"/>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const session_user_id = [[${session.SS_USER_ID}]]; // Controller에서 받은 세션에 저장된 값
+
+        /*]]>*/
+    </script>
+    <script>
+        $(document).ready(function(){
+            $("#header").load("/header/header");
+            $("#footer").load("/header/footer");
+        });
+
+    </script>
+    <!-- Channel Plugin Scripts -->
+
+    <!-- End Channel Plugin -->
+</head>
+<body>
+<div id="header">
+
+</div>
+
+<div class = "divTable container">
+    <div class="divTableHeading">
+        <div class="divTableHead" >유저 아이디</div>
+        <div class="divTableHead">유저 이름</div>
+        <div class="divTableHead">유저 이메일</div>
+    </div>
+    <div class="divTableBody">
+        <div class="divTableCell" th:text="${rDTO.userId}" ></div>
+        <div class="divTableCell" th:text="${rDTO.userName}"></div>
+        <div class="divTableCell" th:text="${rDTO.email}" ></div>
+    </div>
+    </div>
+<div class="container " >
+    <button class="custom-btn btn-1 float-end mt-2 pt-1" id="userDelete" >회원탈퇴</button>
+    <button class="custom-btn btn-1 float-end mt-2 pt-1 divTableCell"  onclick="location.href='myPassword'">비밀번호 변경</button>
+</div>
+<div class = "divTable container">
+    <div class="divTableBody">
+        <div class="divTableRow" th:each="fav: ${fDTO.favorite}">
+            <div class="divTableCell"  > <a  th:text="${fav}" ></a></div>
+            <button class="deleteFev divTableCell custom-btn btn-1" th:value="${fav}">즐겨찾기 삭제</button>
+
+        </div>
+    </div>
+</div>
+<div class = "divTable container" id="myList">
+
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $(".deleteFev").click(clickvalue);
+        $("#userDelete").click(userDelete);
+        $.ajax({
+            url: "/myPage/myList",
+            type: "get", // 전송방식은 Post
+            dataType: "json", // 전송 결과는 JSON으로 받기
+            data:{userId:session_user_id},
+            success: function (json){
+                console.log(json)
+                let html = ""
+                html +=" <div class=\"divTableHeading\">\n" +
+                    "        <div class=\"divTableRow\">\n" +
+                    "            <div class=\"divTableHead\">순번</div>\n" +
+                    "            <div class=\"divTableHead\">제목</div>\n" +
+                    "            <div class=\"divTableHead\">조회수</div>\n" +
+                    "            <div class=\"divTableHead\">등록자</div>\n" +
+                    "        </div>\n" +
+                    "    </div>"
+                $.each(json, (id, obj) => {
+                    let userId =  obj.userId
+                    let noticeSeq = obj.noticeSeq
+                    let contents = obj.contents
+                    let chgDt = obj.chgDt
+
+
+                    html += "<div class='divTableBody'>";
+                    html += "<div class='divTableRow'>";
+                    html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>" + noticeSeq + "</div>";
+                    html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>" + userId + "</div>";
+                    html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>"+"<a href='/notice/noticeInfo?nSeq="+noticeSeq+"'>"+contents+"</a>"+ "</div>";
+                    html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>" + chgDt + "</div>";
+                    html += "<button class='deleteNotice divTableCell custom-btn btn-1' value='"+noticeSeq+"'>"+"상담 삭제"+"</button>";
+
+                    html += "</div>";
+                    html += "</div>";
+
+                })
+                html +="</div>"
+                $("#myList").html(html);
+                $(".deleteNotice").click(clickvalue2);
+            }
+        })
+        function clickvalue(){
+            let value = this.value;
+            deleteFev(value);
+        }
+        function clickvalue2(){
+            let value = this.value;
+            deleteNotice(value);
+        }
+        function userDelete(){
+            $.ajax({
+                url: "/myPage/userDelete",
+                type: "post", // 전송방식은 Post
+                dataType: "text", // 전송 결과는 JSON으로 받기
+                data:{user_id:session_user_id},
+                success: function (text) { //
+                    alert(text);
+                   location.href="/main/mainPage";
+                },
+                error:function (text){
+                    alert(text)
+                }
+            })
+
+        }
+        function deleteFev(value){
+            console.log(session_user_id);
+            console.log(value);
+            $.ajax({
+                url: "/myPage/deleteFav",
+                type: "post", // 전송방식은 Post
+                dataType: "text", // 전송 결과는 JSON으로 받기
+                data:{user_id:session_user_id,favorite:value},
+                success: function (text) { //
+                    alert(text);
+                    location.reload();
+                },
+                error:function (text){
+                    alert(text)
+                }
+            })
+        }
+        function deleteNotice(value){
+            console.log(session_user_id);
+            console.log(value);
+            $.ajax({
+                url: "/myPage/deleteNotice",
+                type: "post", // 전송방식은 Post
+                dataType: "text", // 전송 결과는 JSON으로 받기
+                data:{user_id:session_user_id,notice_seq:value},
+                success: function (text) { //
+                    alert(text);
+                    location.reload();
+                },
+                error:function (text){
+                    alert(text)
+                }
+            })
+        }
+
+    })
+</script>
+</body>
+</html>

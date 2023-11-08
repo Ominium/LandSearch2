@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css"/>
+    <link rel="stylesheet" href="/css/table.css">
+    <script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#header").load("/header/header");
+            $("#footer").load("/header/footer");
+        });
+
+    </script>
+
+    <style>
+        .label {margin-bottom: 96px;}
+        .label * {display: inline-block;vertical-align: top;}
+        .label .left {background: url("https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_l.png") no-repeat;display: inline-block;height: 24px;overflow: hidden;vertical-align: top;width: 7px;}
+        .label .center {background: url(https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_bg.png) repeat-x;display: inline-block;height: 24px;font-size: 12px;line-height: 24px;}
+        .label .right {background: url("https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_r.png") -1px 0  no-repeat;display: inline-block;height: 24px;overflow: hidden;width: 6px;}
+    </style>
+    <title>Land Search</title>
+
+</head>
+<body>
+<div id="header">
+</div>
+<div id = "area">
+
+</div>
+<div class="container">
+
+    <div class="input-group mb-3">
+                        <span class="input-group-text" style="text-align: center"
+                        >카테고리 검색</span>
+            <div id="category">
+
+            </div>
+            <div id="category-sub">
+
+            </div>
+        <button class="custom-btn btn-1 " id ="category-List">검색하기</button>
+        </div>
+
+</div>
+
+<div class="container">
+
+    <div class="input-group mb-3">
+                        <span class="input-group-text" style="text-align: center"
+                        >음식점 종류 검색</span>
+            <label>
+                <select class="select-p1" id="food">
+                    <option value="I212">비 알코올</option>
+                    <option value="I207">구내식당, 뷔페</option>
+                    <option value="I210">기타 간이</option>
+                    <option value="I206">기타 외국</option>
+                    <option value="I205">동남아</option>
+                    <option value="I204">양식</option>
+                    <option value="I203">일식</option>
+                    <option value="I202">중식</option>
+                    <option value="I201">한식</option>
+
+                </select>
+            </label>
+    </div>
+</div>
+
+<div class="container">
+    <div class="col-md-6">
+<div id="map" style="width:500px;height:400px;"></div>
+    </div>
+    <div class="col-md-6" id = "food-list">
+
+    </div>
+</div>
+
+<div class="container">
+    <div class="col-md-6">
+<div id="category-search">
+
+</div>
+        <div class="divTableBody" id="paging">
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=38ea2f6a8379e4f43ece2bc4545a4ddf"></script>
+<script>
+
+    $(document).ready(function () {
+
+        $.ajax({
+            url: "/main/category",
+            type: "get", // 전송방식은 Post
+            dataType: "json", // 전송 결과는 JSON으로 받기
+            success: function (json) { //
+                let html = "<div id='category-list' >";
+                html += "<label>"
+                html += "<select class=\"select-p1\" id ='main-category'>"
+                $.each(json, (id, obj) => {
+
+                    html += "<option value='"+obj.codeNumber+"'>"+obj.codeName+"</option>"
+
+                })
+
+                html+="</select>"
+                html+="<input type='hidden' id='searchtext' name='searchtext' value=''>"
+                html+="<input type='hidden'  name='pagenumber' value='1'>"
+                html+="</label>"
+                html+="</div>"
+                $("#category").html(html);
+            }
+
+
+
+        })
+        PosMap();
+
+
+    $("#category-List").on("click",function(){
+        let indsMclsCd = document.querySelector('#sub-category').value;
+        $("input[name='searchtext']").val(indsMclsCd);
+        clickpage(1)
+
+
+        })
+
+    })
+
+    function clickpage(value) {
+        let indsMclsCd = document.querySelector('#sub-category').value;
+
+        console.log(indsMclsCd)
+        var pageSize = 10;
+        var totalPages = 0;
+        var curPage = value;
+        $.ajax({
+            url: "/main/categorySearchPage",
+            type: "get", // 전송방식은 Post
+            dataType: "json", // 전송 결과는 JSON으로 받기
+            data:{indsMclsCd:indsMclsCd,num:value},
+            success: function (json) { //
+                let html = "<div id='category-search-list' class='divTable' >";
+                html +="<div class='divTableHeading'  >"
+                html +="<div class='divTableRow'  >"
+                html += "<div class='divTableHead'>시설물명</div>";
+                html += "<div class='divTableHead '>주소</div>";
+                html += "<div class='divTableHead'>분류</div>";
+
+                html +="</div>";
+                html +="</div>";
+                let list = json.response.body.items.item;
+                let list2 = json.response.body.itmes;
+                let count = json.response.body.totalCount;
+                if(count === 1){
+                    list = list2;
+                }
+                $.each(list, (id, obj) => {
+                    html += "<div class='divTableBody'>";
+                    html += "<div class='divTableRow'>";
+                    html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>"+obj.bizesNm+"</div>"
+                    html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>"+obj.rdnmAdr+"</div>"
+                    html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>"+obj.ksicNm+"</div>"
+                    html += "</div>";
+                    html += "</div>";
+
+                })
+                html +="</div>";
+                html +="</div>";
+                html+="</div>"
+                if (count !== 0) {
+                    totalPages = Math.ceil(count / pageSize);
+                    // pageLink(현재페이지, 전체페이지, 호출할 함수이름)
+                    let htmlStr = pageLink(curPage, totalPages, "clickpage");
+                    // common.js - pageLink
+                    $("#paging").html(htmlStr);
+                }
+
+                $("#category-search").html(html);
+            }
+
+
+
+        })
+
+    }
+    function pageLink(curPage, totalPages, funName) {
+        let pageUrl = "";
+
+        let pageLimit = 5;
+        let startPage = parseInt((curPage - 1) / pageLimit) * pageLimit + 1;
+        let endPage = startPage + pageLimit - 1;
+
+        if (totalPages < endPage) {
+            endPage = totalPages;
+        }
+
+        let nextPage = endPage + 1;
+        //console.log(curPage,"curPage,",startPage,"startPage,",endPage,"endPage,",nextPage,"nextPage")
+
+        //맨 첫 페이지
+        if (curPage > 1 && pageLimit < curPage) {
+            pageUrl += "<a class='page a-button' href='javascript:" + funName + "(1);'>"+"<<"+"</a>";
+        }
+        //이전 페이지
+        if (curPage > pageLimit) {
+            pageUrl += " <a class='page a-button' href='javascript:" + funName + "(" + (startPage === 1 ? 1 : startPage - 1) + ");'>"+"<"+"</a>";
+        }
+        //~pageLimit 맞게 페이지 수 보여줌
+        for (let i = startPage; i <= endPage; i++) {
+            //현재페이지면 진하게 표시
+            if (i === curPage) {
+                pageUrl += "<a  class='a-button' href='#'><strong>" + i + "</strong></a>"
+            } else {
+                pageUrl += " <a class='a-button' href='javascript:" + funName + "(" + i + ");'> " + i + " </a>";
+            }
+        }
+        //다음 페이지
+        if (nextPage <= totalPages) {
+            pageUrl += "<a class='page a-button' href='javascript:" + funName + "(" + (nextPage < totalPages ? nextPage : totalPages) + ");'>"+">"+"</a>";
+        }
+        //맨 마지막 페이지
+        if (curPage < totalPages && nextPage < totalPages) {
+            pageUrl += "<a class='page a-button' href='javascript:" + funName + "(" + totalPages + ");'>"+">>"+"</a>";
+        }
+        //console.log(pageUrl);
+
+        return pageUrl;
+    }
+    $("#category").on("click",function() {
+        let indsLclsCd = document.querySelector('#main-category').value;
+        console.log(indsLclsCd)
+
+        $.ajax({
+            url: "/main/categoryLoad",
+            type: "get", // 전송방식은 Post
+            dataType: "json", // 전송 결과는 JSON으로 받기
+            data: {indsLclsCd: indsLclsCd},
+            success: function (json) { //
+                console.log(json)
+                let html = "<div id='category-list' >";
+
+                html += "<label>"
+                html += "<select class=\"select-p1\" id ='sub-category'>"
+                let list = json.response.body.items.item;
+                $.each(list, (id, obj) => {
+                    console.log(obj)
+                    html += "<option value='" + obj.indsMclsCd + "'>" + obj.indsMclsNm + "</option>"
+                })
+                html += "</select>"
+                html += "</label>"
+                html += "</div>"
+                $("#category-sub").html(html);
+            }
+        })
+    })
+
+
+    function PosMap() {
+
+        geo()
+
+        function geo() {
+            let lat, lon;
+            if (navigator.geolocation) {
+                // GeoLocation을 이용해서 접속 위치를 얻어옵니다
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    lat = position.coords.latitude; // 위도
+                    lon = position.coords.longitude; // 경도
+                    console.log(lat)
+                    $.ajax(
+
+                        { // Ajax 호출
+
+                            url: "/main/aroundapi",
+                            type: "get", // 전송방식은 Post
+                            dataType: "json", // 전송 결과는 JSON으로 받기
+                            data:{lon:lon,lat:lat},
+                            success: function (json) { //
+                                // position.coords.latitude; 위도
+                                let lat ;
+                                let lon ;
+                                var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+                                    mapOption = {
+                                        center: new kakao.maps.LatLng(37.2461191
+                                            , 127.055503
+                                        ), // 지도의 중심좌표
+                                        level: 2 // 지도의 확대 레벨
+                                    };
+                                if (navigator.geolocation) {
+                                    // GeoLocation을 이용해서 접속 위치를 얻어옵니다
+                                    navigator.geolocation.getCurrentPosition(function(position) {
+
+                                        lat = position.coords.latitude; // 위도
+                                        lon = position.coords.longitude; // 경도
+
+                                        var locPosition = new kakao.maps.LatLng(lat, lon), // 마커가 표시될 위치를 geolocation으로 얻어온 좌표로 생성합니다
+                                            message = '<div style="padding:5px;">여기에 계신가요?!</div>'; // 인포윈도우에 표시될 내용입니다
+
+                                        // 마커와 인포윈도우를 표시합니다
+                                        displayMarker(locPosition, message);
+
+                                    });
+
+                                } else { // HTML5의 GeoLocation을 사용할 수 없을때 마커 표시 위치와 인포윈도우 내용을 설정합니다
+
+                                    var locPosition = new kakao.maps.LatLng(37.2461191
+                                            , 127.055503),
+                                        message = 'geolocation을 사용할수 없어요..'
+
+                                    displayMarker(locPosition, message);
+                                }
+                                var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
+                                var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+                                const list = json.response.body.items.item
+                                let xPoses =[];
+                                let yPoses = [];
+                                let title = [];
+                                let trarNos = []
+                                for(let obj of list) {
+                                    let coords = obj.coords
+                                    trarNos.push(obj.trarNo)
+                                    title.push(obj.mainTrarNm)
+                                    console.log(obj.mainTrarNm)
+                                    coords = coords.replace('(((', '');
+                                    coords = coords.replace(')))', '');
+                                    coords = coords.replace('MULTIPOLYGON', '');
+                                    coords = coords.split(',')
+                                    let cList = [];
+                                    for (let coord of coords) {
+                                        coord = coord.split(' ');
+                                        cList.push(coord[2])
+                                        cList.push(coord[1])
+                                        console.log(coord)
+                                    }
+
+                                    var polygonPath = [];
+                                    for (let i = 0; i + 1 < cList.length; i = i + 2) {
+                                        polygonPath.push(new kakao.maps.LatLng(cList[i], cList[i + 1]))
+                                    }
+                                    let points = [];
+                                    for(let i = 0; i+1 < cList.length; i = i+2){
+                                        let point = {};
+                                        point.x =cList[i+1]
+                                        point.y = cList[i]
+                                        points.push(point)
+
+                                    }
+                                    xPoses.push(findCentroid(points)[1])
+                                    yPoses.push(findCentroid(points)[0])
+                                    console.log(xPoses[0]);
+                                    var polygon = new kakao.maps.Polygon({
+                                        path: polygonPath, // 그려질 다각형의 좌표 배열입니다
+                                        strokeWeight: 3, // 선의 두께입니다
+                                        strokeColor: '#39DE2A', // 선의 색깔입니다
+                                        strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+                                        strokeStyle: 'longdash', // 선의 스타일입니다
+                                        fillColor: '#A2FF99', // 채우기 색깔입니다
+                                        fillOpacity: 0.7 // 채우기 불투명도 입니다
+                                    })
+                                    polygon.setMap(map);
+                                }
+
+                                function getDistanceFromLatLonInKm(lat1,lng1,lat2,lng2) {
+
+                                    function deg2rad(deg) {
+                                        return deg * (Math.PI/180)
+                                    }
+
+                                    var R = 6371; // Radius of the earth in km
+                                    var dLat = deg2rad(lat2-lat1);  // deg2rad below
+                                    var dLon = deg2rad(lng2-lng1);
+                                    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                                    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                                    var d = R * c; // Distance in km
+                                    console.log(d.toFixed(2))
+                                    return d.toFixed(2) + "km";
+                                }
+                                function displayMarker(locPosition, message) {
+
+                                    // 마커를 생성합니다
+                                    var marker2 = new kakao.maps.Marker({
+                                        map: map,
+                                        position: locPosition
+                                    });
+
+                                    var iwContent = message, // 인포윈도우에 표시할 내용
+                                        iwRemoveable = true;
+
+                                    // 인포윈도우를 생성합니다
+                                    var infowindow = new kakao.maps.InfoWindow({
+                                        content : iwContent,
+                                        removable : iwRemoveable
+                                    });
+
+                                    // 인포윈도우를 마커위에 표시합니다
+                                    infowindow.open(map, marker2);
+
+                                    // 지도 중심좌표를 접속위치로 변경합니다
+                                    map.setCenter(locPosition);
+
+                                    return locPosition;
+                                }
+
+                                navigator.geolocation.getCurrentPosition(function(position) {
+                                    var imageSize = new kakao.maps.Size(24, 35);
+                                    // 마커 이미지를 생성합니다
+                                    var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+                                    lat = position.coords.latitude; // 위도
+                                    lon = position.coords.longitude; // 경도
+                                    for (let i = 0; i < xPoses.length; i++) {
+                                            let message =  title[i] + '&nbsp&nbsp' + getDistanceFromLatLonInKm( xPoses[i],yPoses[i], lat, lon); // 인포윈도우에 표시될 내용입니다
+                                            let position = new kakao.maps.LatLng(xPoses[i] ,yPoses[i]);
+                                            addMarker(position,title[i],markerImage,message,trarNos[i]);
+
+
+
+
+                                        // 마커와 인포윈도우를 표시합니다
+                                        /*let customOverlay = new kakao.maps.CustomOverlay({
+                                            position: position,
+                                            content: message
+                                        });
+
+                                        customOverlay.setMap(map);*/
+
+
+
+                                    }
+
+                                })
+
+                                function addMarker(position,title,Image,message,trarNo){
+                                    var marker = new kakao.maps.Marker({
+                                        map: map, // 마커를 표시할 지도
+                                        position: position, // 마커를 표시할 위치
+                                        title: title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+                                        image: Image // 마커 이미지
+                                    });
+
+
+                                    // 인포윈도우를 생성합니다
+
+                                    kakao.maps.event.addListener(marker, 'click', makeOverListener(map, marker,message,trarNo))
+
+
+
+                                }
+                                 function makeOverListener(map, marker,message,trarNo) {
+                                    return function() {
+
+                                        let comName = sectorSearch(map, marker,message,trarNo)
+
+                                    };
+                                }
+                                 function infowindowcomName(map, marker,message){
+                                    const iwRemoveable = true;
+                                    var infowindow = new kakao.maps.InfoWindow({
+                                        content : message,
+                                        removable : iwRemoveable
+                                    });
+                                    infowindow.open(map, marker);
+                                }
+                                // 인포윈도우를 마커위에 표시합니다
+                                function sectorSearch(map, marker,message,value){
+                                    let indsMclsCd = document.querySelector('#food').value;
+
+                                  $.ajax({
+                                      url: "/main/mapCategorySearch",
+                                      type: "get", // 전송방식은 Post
+                                      dataType: "json", // 전송 결과는 JSON으로 받기
+                                      data:{key:value,indsMclsCd:indsMclsCd},
+                                      success: function (json) {
+
+                                          let list = json.response.body.items.item;
+                                          let html = "<div id='category-search-list' class='divTable' >";
+                                          html +="<div class='divTableHeading'  >"
+                                          html +="<div class='divTableRow'  >"
+                                          html += "<div class='divTableHead'>음식점명</div>";
+
+                                          html +="</div>";
+                                          html +="</div>";
+                                          let bizesNms = [];
+                                          for(let obj of list){
+                                              bizesNms.push(obj.bizesNm)
+                                              html += "<div class='divTableBody'>";
+                                              html += "<div class='divTableRow'>";
+                                              html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>" + obj.bizesNm + "</div>";
+                                              html += "</div>";
+                                              html += "</div>";
+
+                                          }
+
+                                          html += "</div>";
+                                          $("#food-list").html(html)
+                                          console.log(bizesNms)
+                                          infowindowcomName(map, marker,message)
+                                      }
+
+
+                                  })
+
+                                }
+
+                                function findCentroid (points) {
+                                    let i, j, len, p1, p2, f, area, x, y;
+                                    area = 0;
+                                    x= 0;
+                                    y=0;
+
+                                    for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
+                                        let py1 = parseFloat(points[i].y);
+                                        let px1 =parseFloat(points[i].x);
+                                        let px2 = parseFloat(points[j].x);
+                                        let py2 = parseFloat(points[j].y);
+
+                                        f = py1 * px2 - py2 * px1
+                                        x += (px1 + px2 ) * f
+
+                                        y += (py1 + py2) * f
+                                        area += f * 3;
+                                    }
+
+                                    return [x / area, y / area];
+                                }
+
+
+
+                            },error:function () {
+                                console.log("실패하셨습니다");
+                            }
+                        })
+                });
+
+            }
+
+
+
+        }
+
+    }
+
+</script>
+
+</body>
+</html>

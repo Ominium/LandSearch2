@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/table.css">
+    <meta charset="UTF-8">
+    <title>Land Search</title>
+</head>
+<body>
+<nav class="navbar">
+
+  <div class="navbar__logo">
+    <i class="fas fa-blog"></i>
+    <a href="/main/mainPage">Land Search</a>
+  </div>
+
+  <ul class="navbar__menu">
+    <li><a href="/main/mainPage">Main</a></li>
+    <li><a href="/main/mainLandSearch">Price</a></li>
+    <li><a href="/main/mainDiagSearch">Diag</a></li>
+    <li><a href="/notice/noticeList">Q & A</a></li>
+    <li><a href="/main/mainQnA">Law</a></li>>
+    <li><a href="/user/logOut"  th:if="${session.SS_USER_ID!=null}">LogOut</a></li>>
+    <li><a href="/myPage/myPage"  th:if="${session.SS_USER_ID!=null}">My Page</a></li>>
+    <li><a href="/user/loginPage"  th:if="${session.SS_USER_ID==null}">Login</a></li>>
+    <li><a href="/user/signForm" th:if="${session.SS_USER_ID==null}">Sign</a></li>>
+  </ul>
+
+
+</nav>
+<br/>
+</body>
+</html>

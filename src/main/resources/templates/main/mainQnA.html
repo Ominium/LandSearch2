@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/table.css">
+  <script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#header").load("/header/header");
+      $("#footer").load("/header/footer");
+    });
+
+  </script>
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const session_user_id = [[${session.SS_USER_ID}]]; // Controller에서 받은 세션에 저장된 값
+
+    /*]]>*/
+  </script>
+  <style>
+    .label {margin-bottom: 96px;}
+    .label * {display: inline-block;vertical-align: top;}
+    .label .left {background: url("https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_l.png") no-repeat;display: inline-block;height: 24px;overflow: hidden;vertical-align: top;width: 7px;}
+    .label .center {background: url(https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_bg.png) repeat-x;display: inline-block;height: 24px;font-size: 12px;line-height: 24px;}
+    .label .right {background: url("https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_r.png") -1px 0  no-repeat;display: inline-block;height: 24px;overflow: hidden;width: 6px;}
+  </style>
+    <title>Land Search</title>
+</head>
+<body>
+<div id="header">
+</div>
+
+<div class="search">
+  <div class="container">
+    <div class="col-md-6">
+      <div class="input-group mb-3">
+                        <span class="input-group-text" style="text-align: center"
+                        >카테고리 검색</span>
+        <label>
+          <select class="select-p1" id="category" name="category" size="1">
+            <option value="">전체
+            </option>
+            <option>단독주택
+            </option>
+            <option>다중주택
+            </option>
+            <option>다가구주택
+            </option>
+            <option>연립주택
+            </option>
+            <option>공관
+            </option>
+            <option>아파트
+            </option>
+            <option>다세대주택
+            </option>
+            <option>기숙사
+            </option>
+            <option>제과점
+            </option>
+            <option>이용원
+            </option>
+          </select>
+          <input type="hidden" id="searchtext" name="searchtext" value=""/>
+          <input type="hidden" name="pagenumber" value="1"/>
+        </label>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div id="apiresult">
+
+  </div>
+
+
+<div class="container">
+  <div class="row">
+<div class="" id="paging">
+</div>
+  </div>
+</div>
+<script>
+
+  $(document).ready(function () {
+    clickpage(1)
+
+    $(".search").on("click",function () {
+      let category2 = document.querySelector('#category').value;
+      $("input[name='searchtext']").val(category2);
+      clickpage(1)
+
+    })
+
+
+  })
+  function clickpage(value) {
+
+    let category = document.querySelector('#searchtext').value;
+
+    console.log(category)
+    var pageSize = 10;
+    var totalPages = 0;
+    var curPage = value;
+    $("input[name='pagenumber']").val(curPage);
+    $.ajax({ // Ajax 호출
+      url: "/main/mainQnAPage",
+      type: "get", // 전송방식은 Post
+      dataType: "json", // 전송 결과는 JSON으로 받기
+      data: {category: category, num: value},
+      success: function (json) { //
+
+        let html = "<div id='qna-list' class='divTable' >";
+        html +="<div class='divTableHeading'  >"
+        html +="<div class='divTableRow'  >"
+        html += "<div class='divTableHead'>시설물명</div>";
+        html += "<div class='divTableHead '>설명</div>";
+        html += "<div class='divTableHead'>관련 법</div>";
+        html += "<div class='divTableHead'>즐겨찾기</div>";
+        html +="</div>";
+        html +="</div>";
+        let pageNo = json.response.pageNo;
+        let count = json.response.totalCount;
+        let list = json.response.fields.field;
+        let list2 = json.response.fields;
+        if(count === 1){
+          list = list2;
+        }
+        $.each(list, (id, obj) => {
+
+          let drug = obj;
+
+          let entpName = drug.reglFcltsNm;
+          let itemName = drug.dc;
+          let atpnQesitm = drug.bassProcssDc;
+
+          html += "<div class='divTableBody'>";
+          html += "<div class='divTableRow'>";
+          html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>" + entpName + "</div>";
+          html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>" + itemName + "</div>";
+          html += "<div class='divTableCell fw-bold mb-0 me-1 user_id'>" + atpnQesitm + "</div>";
+          html += "<button class='divTableCell insertFav btn btn-outline-primary' value='"+atpnQesitm+"' >즐겨찾기 추가</button>"
+          html += "</div>";
+          html += "</div>";
+        })
+
+        if (count !== 0) {
+          totalPages = Math.ceil(count / pageSize);
+          // pageLink(현재페이지, 전체페이지, 호출할 함수이름)
+          let htmlStr = pageLink(curPage, totalPages, "clickpage");
+          // common.js - pageLink
+          $("#paging").html(htmlStr);
+        }
+        $("#apiresult").html(html);
+        $(".insertFav").click(clickvalue2)
+      }, error: function () {
+        console.log("실패하셨습니다");
+      }
+
+    })
+
+  }
+
+  function pageLink(curPage, totalPages, funName) {
+    let pageUrl = "";
+
+    let pageLimit = 5;
+    let startPage = parseInt((curPage - 1) / pageLimit) * pageLimit + 1;
+    let endPage = startPage + pageLimit - 1;
+
+    if (totalPages < endPage) {
+      endPage = totalPages;
+    }
+
+    let nextPage = endPage + 1;
+    //console.log(curPage,"curPage,",startPage,"startPage,",endPage,"endPage,",nextPage,"nextPage")
+
+    //맨 첫 페이지
+    if (curPage > 1 && pageLimit < curPage) {
+      pageUrl += "<a class='page a-button' href='javascript:" + funName + "(1);'>"+"<<"+"</a>";
+    }
+    //이전 페이지
+    if (curPage > pageLimit) {
+      pageUrl += " <a class='page a-button' href='javascript:" + funName + "(" + (startPage === 1 ? 1 : startPage - 1) + ");'>"+"<"+"</a>";
+    }
+    //~pageLimit 맞게 페이지 수 보여줌
+    for (let i = startPage; i <= endPage; i++) {
+      //현재페이지면 진하게 표시
+      if (i === curPage) {
+        pageUrl += "<a  class='a-button' href='#'><strong>" + i + "</strong></a>"
+      } else {
+        pageUrl += " <a class='a-button' href='javascript:" + funName + "(" + i + ");'> " + i + " </a>";
+      }
+    }
+    //다음 페이지
+    if (nextPage <= totalPages) {
+      pageUrl += "<a class='page a-button' href='javascript:" + funName + "(" + (nextPage < totalPages ? nextPage : totalPages) + ");'>"+">"+"</a>";
+    }
+    //맨 마지막 페이지
+    if (curPage < totalPages && nextPage < totalPages) {
+      pageUrl += "<a class='page a-button' href='javascript:" + funName + "(" + totalPages + ");'>"+">>"+"</a>";
+    }
+    //console.log(pageUrl);
+
+    return pageUrl;
+  }
+
+
+  function clickvalue2(){
+    let value = this.value;
+    insertFav(value);
+  }
+  function insertFav(value) {
+    console.log(session_user_id);
+    console.log(value);
+    if (session_user_id === "" || session_user_id == null) {
+      alert("로그인 후 이용 바랍니다.");
+    } else {
+      $.ajax({
+        url: "/myPage/insertFav",
+        type: "post", // 전송방식은 Post
+        dataType: "text", // 전송 결과는 JSON으로 받기
+        data: {user_id: session_user_id, favorite: value},
+        success: function (text) { //
+          alert(text);
+        },
+        error: function (text) {
+          alert(text)
+        }
+      })
+    }
+  }
+
+
+</script>
+</body>
+</html>

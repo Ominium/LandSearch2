@@ -1,0 +1,20 @@
+package com.example.landsearch.controller
+
+import lombok.extern.slf4j.Slf4j
+import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+
+@Controller
+@Slf4j
+@RequestMapping("/header")
+class HeaderController {
+    @GetMapping("/header")
+    fun header():String?{
+        return "header/header"
+    }
+    @GetMapping("/footer")
+    fun footer():String?{
+        return "header/footer"
+    }
+}

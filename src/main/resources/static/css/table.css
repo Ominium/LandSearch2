@@ -1,0 +1,75 @@
+div.minimalistBlack {
+    border: 3px solid #000000;
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+.divTable.minimalistBlack .divTableCell, .divTable.minimalistBlack .divTableHead {
+    border: 1px solid #000000;
+    padding: 5px 4px;
+}
+.divTable.minimalistBlack .divTableBody .divTableCell {
+    text-align: center;
+    font-size: 15px;
+    padding: 5px 4px;
+}
+.divTable.minimalistBlack .divTableHeading {
+    background: darkblue;
+    background: -moz-linear-gradient(top, #dbdbdb 0%, #d3d3d3 66%, #CFCFCF 100%);
+    background: -webkit-linear-gradient(top, #dbdbdb 0%, #d3d3d3 66%, #CFCFCF 100%);
+    background: linear-gradient(to bottom, #dbdbdb 0%, #d3d3d3 66%, #CFCFCF 100%);
+    border-bottom: 3px solid #000000;
+}
+.divTable.minimalistBlack .divTableHeading .divTableHead {
+    font-size: 21px;
+    font-weight: bold;
+    color: #000000;
+    text-align: center;
+}
+.minimalistBlack .tableFootStyle {
+    font-size: 14px;
+    font-weight: bold;
+    color: #000000;
+    border-top: 3px solid #000000;
+}
+.minimalistBlack .tableFootStyle {
+    font-size: 14px;
+}
+/* DivTable.com */
+.divTable{
+    display: table;
+    background-color: white;
+    width: 100%;
+}
+.divTableRow {
+    display: table-row;
+}
+.divTableHeading {
+    background-color: #EEE;
+    display: table-header-group;
+}
+.divTableCell {
+    border: 1px solid #999999;
+    background-color: white;
+    display: table-cell;
+    padding: 3px 10px;
+}
+.divTableHead {
+    border: 1px solid #999999;
+    background-color: bisque;
+    display: table-cell;
+    padding: 3px 10px;
+}
+.divTableHeading {
+    background-color: #EEE;
+    display: table-header-group;
+    font-weight: bold;
+}
+.divTableFoot {
+    background-color: #EEE;
+    display: table-footer-group;
+    font-weight: bold;
+}
+.divTableBody {
+    display: table-row-group;
+}
